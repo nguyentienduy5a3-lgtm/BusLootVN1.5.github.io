@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>BUSLOOT - Xe buýt xanh | Loot & Drop</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* ... toàn bộ style giữ nguyên như code gốc ... */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
+            background: #eef5e9;
+            color: #2c4a2e;
+            min-height: 100vh;
+            padding-bottom: 40px;
+        }
+        body::before {
+            content: "🚌";
+            font-size: 200px;
+            position: fixed;
+            bottom: -40px;
+            right: -40px;
+            opacity: 0.04;
+            pointer-events: none;
+            z-index: 0;
+            transform: rotate(-10deg);
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 2;
+        }
+        .header {
+            background: rgba(255, 255, 245, 0.9);
+            backdrop-filter: blur(8px);
+            border-radius: 80px;
+            border: 1px solid #c3e0b0;
+            padding: 8px 24px;
+            margin-bottom: 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #ffffffcc;
+            padding: 5px 18px;
+            border-radius: 60px;
+        }
+        .logo h1 {
+            font-size: 1.6rem;
+            background: linear-gradient(135deg, #2e7a3a, #1f6233);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .bus-icon-large { font-size: 32px; }
+        .vn-flag { font-size: 30px; }
+        .datetime {
+            background: #f5fdeb;
+            padding: 5px 16px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            border: 1px solid #b2da9a;
+            color: #2a6b36;
+            font-weight: 600;
+            font-family: monospace;
+            display: inline-flex;
+            gap: 12px;
+            align-items: baseline;
+        }
+        .user-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .profile-icon {
+            background: #6aa85a;
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            border: 2px solid #f9ffdb;
+            color: white;
+        }
+        .music-toggle {
+            background: #498b46;
+            border: none;
+            border-radius: 60px;
+            padding: 6px 18px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .music-toggle:hover { background: #62ac5a; transform: scale(0.97); }
+        .stats-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: #ffffffdb;
+            backdrop-filter: blur(4px);
+            border-radius: 32px;
+            padding: 12px 18px;
+            text-align: center;
+            flex: 1;
+            min-width: 100px;
+            border-left: 5px solid #6bb84a;
+        }
+        .stat-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #558b3a;
+        }
+        .stat-card strong {
+            font-size: 1.9rem;
+            display: block;
+            font-weight: 800;
+            color: #1c4a26;
+        }
+        button {
+            background: #f4fcf0;
+            border: 1px solid #b8dc9e;
+            padding: 10px 24px;
+            border-radius: 60px;
+            font-weight: 600;
+            color: #2e6737;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:active { transform: scale(0.97); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .primary { background: linear-gradient(115deg, #46a649, #2f8035); color: white; border: none; }
+        .danger { background: linear-gradient(115deg, #e6846c, #cb5a4a); color: white; border: none; }
+        .success { background: #6fbf4c; color: white; border: none; }
+        .gps-btn { background: #4791c4; color: white; border: none; }
+        .route-panel, .map-panel, .wheel-panel, .cookie-panel, .loot-panel, .profile-panel {
+            background: rgba(255, 255, 250, 0.9);
+            backdrop-filter: blur(6px);
+            border-radius: 44px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #cee6bc;
+        }
+        .route-selector {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        .route-group {
+            flex: 1;
+            min-width: 160px;
+        }
+        .route-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #4a7841;
+        }
+        select, input {
+            background: white;
+            border: 1px solid #c7e3b5;
+            border-radius: 60px;
+            padding: 10px 16px;
+            color: #1d4628;
+            width: 100%;
+            font-weight: 500;
+        }
+        .map-container {
+            background: #eef4ea;
+            border-radius: 32px;
+            padding: 12px;
+            margin-top: 16px;
+        }
+        .google-map-embed {
+            width: 100%;
+            height: 380px;
+            border-radius: 24px;
+            border: 2px solid #9ad18a;
+        }
+        .location-status {
+            margin-top: 12px;
+            text-align: center;
+            font-size: 13px;
+            background: #ffffffbb;
+            padding: 8px;
+            border-radius: 60px;
+        }
+        .loot-panel { text-align: center; }
+        #lootSlot { min-height: 260px; display: flex; align-items: center; justify-content: center; }
+        .section-title {
+            font-size: 1.4rem;
+            margin: 25px 0 15px 0;
+            border-left: 6px solid #7fbf62;
+            padding-left: 20px;
+            font-weight: 700;
+            color: #2b6137;
+        }
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 16px;
+            margin-top: 18px;
+        }
+        .inventory-tile {
+            background: #fefee8;
+            border-radius: 28px;
+            padding: 12px 6px;
+            text-align: center;
+            position: relative;
+            border: 1px solid #cae6b5;
+        }
+        .tile-badge {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            width: 12px;
+            height: 12px;
+            border-radius: 20px;
+        }
+        .tile-badge.common { background: #9bd39b; }
+        .tile-badge.uncommon { background: #6fcf97; }
+        .tile-badge.rare { background: #4d9eff; }
+        .tile-badge.epic { background: #bd6ae0; }
+        .tile-badge.legendary { background: #f3a333; }
+        .tile-badge.mythic { background: #f06a9e; }
+        .tile-badge.secret { background: #ffde6e; }
+        .tile-badge.impossible { background: #ff66aa; }
+        .tile-style { font-size: 11px; color: #2f5b3a; margin-top: 6px; }
+        .tile-art { font-size: 44px; margin: 6px 0; }
+        .tile-name { font-weight: 700; font-size: 0.8rem; }
+        .daily-calendar {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+            background: #e9f3e3;
+            padding: 16px;
+            border-radius: 60px;
+        }
+        .daily-day {
+            background: white;
+            border-radius: 30px;
+            padding: 8px;
+            text-align: center;
+            min-width: 68px;
+            border: 1px solid #b9dfa4;
+        }
+        .daily-day.claimed { background: #c8e8b8; border-color: #6fbf4c; }
+        .daily-day.today { border: 2px solid #f5b642; background: #fff3e0; }
+        .daily-day.available { cursor: pointer; animation: softGlow 1.2s infinite; }
+        .daily-reward { font-size: 20px; margin: 4px 0; }
+        .sort-bar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .sort-select {
+            background: #f3feee;
+            padding: 6px 18px;
+            border-radius: 40px;
+            border: 1px solid #afda97;
+            color: #2e6b36;
+        }
+        .wheel-pointer-outer {
+            position: absolute;
+            left: -60px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 12;
+        }
+        .wheel-pointer-outer {
+            position: absolute;
+            left: -60px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 12;
+        }
+        canvas#wheelCanvas {
+            background: #edf8e6;
+            border-radius: 50%;
+            box-shadow: 0 0 0 5px #e4f3db, 0 0 0 10px #cae4ba;
+            max-width: 260px;
+            width: 100%;
+            height: auto;
+        }.wheel-container {
+  position: relative;
+  display: inline-block;
+}
+        .wheel-pointer {
+            position: absolute;
+            top: 50%;
+            left: calc(50% - 270px);
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-top: 18px solid transparent;
+            border-bottom: 18px solid transparent;
+            border-right: 30px solid #f5b642;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            z-index: 10;
+        }
+        .fortune-message {
+            background: #fffff0;
+            border-radius: 48px;
+            padding: 12px;
+            margin-top: 12px;
+            text-align: center;
+            border: 1px solid #e7e2b0;
+            color: #7a682a;
+        }
+        .cookie-crack { animation: shakeCookie 0.5s ease-in-out; }
+        @keyframes shakeCookie {
+            0%,100% { transform: rotate(0deg) scale(1); }
+            15% { transform: rotate(-15deg) scale(1.1); }
+            30% { transform: rotate(12deg) scale(1.1); }
+            45% { transform: rotate(-10deg) scale(1.08); }
+            60% { transform: rotate(8deg) scale(1.05); }
+            75% { transform: rotate(-5deg) scale(1.02); }
+            90% { transform: rotate(2deg) scale(1); }
+        }
+        .paper-note {
+            position: absolute;
+            background: #fffae8;
+            color: #5e401d;
+            padding: 16px;
+            border-radius: 20px;
+            max-width: 250px;
+            text-align: center;
+            font-weight: bold;
+            z-index: 10000;
+            animation: flyPaper 0.6s forwards;
+            border-left: 10px solid #ffcd7e;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        @keyframes flyPaper {
+            0% { opacity: 0; transform: translate(0, 0) scale(0.2) rotate(-150deg); }
+            50% { opacity: 1; transform: translate(-80px, -120px) scale(1.05) rotate(3deg); }
+            100% { opacity: 0; transform: translate(-180px, -250px) scale(0.8) rotate(10deg); }
+        }
+        .modal {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(40, 65, 30, 0.85);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        .modal-content {
+            background: #fefef7;
+            padding: 24px;
+            border-radius: 56px;
+            width: 90%;
+            max-width: 420px;
+            border: 1px solid #b2dc98;
+        }
+        .hidden { display: none; }
+        .toast {
+            position: fixed;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ffffffea;
+            color: #2c6e35;
+            padding: 10px 24px;
+            border-radius: 60px;
+            z-index: 3000;
+            border-left: 6px solid #77c85f;
+            font-weight: bold;
+            backdrop-filter: blur(8px);
+        }
+        .ride-status {
+            background: #eaf5e4;
+            border-radius: 60px;
+            padding: 12px 20px;
+            margin: 15px 0;
+            text-align: center;
+            font-weight: 600;
+            border: 1px solid #afda97;
+        }
+        footer {
+            text-align: center;
+            margin-top: 45px;
+            padding: 16px;
+            font-size: 12px;
+            background: #ddecd3;
+            border-radius: 80px;
+            color: #447a36;
+        }
+        .mystical-popup {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fdf7df;
+            border: 4px solid #ffbc6e;
+            border-radius: 60px;
+            padding: 24px 36px;
+            text-align: center;
+            z-index: 20000;
+            box-shadow: 0 0 50px #ffb347;
+            backdrop-filter: blur(14px);
+            animation: mysticalFade 2s forwards;
+            pointer-events: none;
+        }
+        .mystical-popup h2 { font-size: 2rem; color: #c1661a; }
+        @keyframes mysticalFade {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+            80% { opacity: 1; }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.2); visibility: hidden; }
+        }
+        @keyframes softGlow {
+            0%,100% { box-shadow: 0 0 0px #7dcd7a; }
+            50% { box-shadow: 0 0 10px #a6e394; }
+        }
+        .dice-spin { animation: spinDice 0.6s infinite; display: inline-block; }
+        @keyframes spinDice { 100% { transform: rotate(360deg); } }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; margin-bottom: 4px; font-weight: 600; color: #557a44; }
+        textarea { background: #fafff5; border: 1px solid #c3e0af; border-radius: 30px; padding: 10px; width: 100%; }
+        .badge-list { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+        .badge { background: #f6f5cf; color: #7d671a; border-radius: 40px; padding: 4px 12px; font-size: 11px; font-weight: bold; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="logo">
+            <span class="bus-icon-large">🚌</span>
+            <h1>BUSLOOT <span style="font-size: 0.8rem;">🌿 xanh</span></h1>
+            <span class="vn-flag">🇻🇳</span>
+        </div>
+        <div class="user-area">
+            <div class="datetime">
+                <span id="liveDate"></span>
+                <span id="liveClock"></span>
+            </div>
+            <button id="musicToggleBtn" class="music-toggle">🎵 Bật nhạc nền</button>
+            <div id="profileIcon" class="profile-icon" style="display:none;">🚌</div>
+            <div><span id="userLabel">🌿 Chưa đăng nhập</span> <button id="toggleAuthButton">🌱 Đăng nhập</button></div>
+        </div>
+    </div>
+
+    <div class="stats-row">
+        <div class="stat-card"><span class="stat-label">🚌 Chuyến</span><strong id="rideCount">0</strong></div>
+        <div class="stat-card"><span class="stat-label">🔥 Streak</span><strong id="streakValue">0</strong></div>
+        <div class="stat-card"><span class="stat-label">🎁 Lượt roll</span><strong id="availableOpens">0</strong></div>
+        <div class="stat-card"><span class="stat-label">⚡ LUCK</span><strong id="pityCounter">0</strong></div>
+        <div class="stat-card"><span class="stat-label">💧 NƯỚC TƯỚI</span><strong id="plantWaterCount">0</strong></div>
+    </div>
+
+    <div id="rideStatus" class="ride-status">🟢 Sẵn sàng lên chuyến xanh! Chọn tuyến, điểm đón & điểm đến</div>
+
+    <div id="dailySection" style="display: none;">
+        <div class="section-title">🌿 ĐIỂM DANH MỖI NGÀY (+1 lượt roll)</div>
+        <div id="dailyCalendar" class="daily-calendar"></div>
+        <div id="streakInfo" style="text-align:center; font-size:13px;"></div>
+    </div>
+
+    <div class="route-panel">
+        <div class="route-selector">
+            <div class="route-group"><label>🚏 TUYẾN XE</label><select id="busRouteSelect"><option value="32">🚌 32 Giáp Bát - Cổ Nhuế</option><option value="27">🚌 27 Nam Thăng Long - Yên Nghĩa</option><option value="161">🚌 161 Cầu Giấy - Mỹ Đình</option><option value="09">🚌 09 Bờ Hồ - Giáp Bát</option><option value="metro">🚇 Metro Cát Linh - Hà Đông</option><option value="86">✈️ 86 Nội Bài - Mỹ Đình</option></select></div>
+            <div class="route-group"><label>📍 ĐIỂM ĐÓN</label><select id="pickupPointSelect"><option value="Giáp Bát">🌳 Giáp Bát</option><option value="Cổ Nhuế">🌳 Cổ Nhuế</option><option value="Mỹ Đình">🌳 Mỹ Đình</option><option value="Bờ Hồ">🌿 Bờ Hồ</option><option value="Cát Linh">🍃 Cát Linh</option><option value="Nội Bài">🍀 Nội Bài</option></select></div>
+            <div class="route-group"><label>🏁 ĐIỂM ĐẾN</label><select id="destinationSelect"><option value="Cổ Nhuế">🌳 Cổ Nhuế</option><option value="Mỹ Đình">🌳 Mỹ Đình</option><option value="Bờ Hồ">🌿 Bờ Hồ</option><option value="Giáp Bát">🌳 Giáp Bát</option><option value="Cát Linh">🍃 Cát Linh</option><option value="Nội Bài">🍀 Nội Bài</option></select></div>
+            <div class="route-group"><button id="gpsLocateBtn" class="gps-btn">📍 GPS ĐỊNH VỊ</button><button id="verifyRouteBtn" class="success" style="margin-top:10px;">🗺️ VẼ LỘ TRÌNH</button></div>
+        </div>
+    </div>
+
+    <div class="map-panel">
+        <div class="section-title">🗺️ BẢN ĐỒ HÀ NỘI</div>
+        <div class="map-container"><iframe id="googleMapIframe" class="google-map-embed" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3723.5!2d105.841!3d21.021!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135ab9a3e3e3e3d%3A0x123456789!2zSOG7jW5nIEtp4buTdSwgSMOgIE7hu5lp!5e0!3m2!1svi!2s!4v1700000000000!5m2!1svi!2s" allowfullscreen loading="lazy"></iframe><div id="locationStatus" class="location-status">🌱 Bật GPS để xác định vị trí thực tế, sau đó vẽ lộ trình</div></div>
+    </div>
+
+    <div style="display: flex; gap: 24px; flex-wrap: wrap;">
+    <button id="startRideButton" class="primary" style="flex: 1 0 100%; min-width: 200px;">🚌 BẮT ĐẦU CHUYẾN (5s)</button>
+    <button id="openButton" class="danger" disabled style="flex: 1 0 calc(50% - 12px); min-width: 150px;">🎲 MỞ CAPSULE</button>
+    <button id="inventoryButton" style="flex: 1 0 calc(50% - 12px); min-width: 150px;">📦 BỘ SƯU TẬP</button>
+    <button id="tradeButton" style="flex: 1 0 calc(50% - 12px); min-width: 150px;">🔄 TRADE 2→1</button>
+</div>
+
+<!-- CAPSULE Ở TRÊN VÒNG QUAY & BÁNH QUY -->
+<div class="loot-panel">
+    <div id="lootSlot">🌱 Bấm MỞ CAPSULE để nhận sticker 🌱</div>
+</div>
+
+<div style="display: flex; gap: 24px; flex-wrap: wrap;">
+    <div class="wheel-panel" style="flex:1;">
+        <div class="section-title">🍃 VÒNG QUAY MAY MẮN</div>
+        <div class="wheel-container">
+            <canvas id="wheelCanvas" width="260" height="260"></canvas>
+            <div class="wheel-pointer-outer">
+                <div class="wheel-pointer"></div>
+            </div>
+            <div id="wheelLeftDaily" style="position:absolute; left:100%; top:50%; transform:translate(18px,-50%); background:#f5fdeb; border:1px solid #b9dfa4; padding:10px 14px; border-radius:60px; font-weight:800; color:#2a6b36; white-space:nowrap;">
+
+                🎡 QUAY: <span id="wheelDailyRemaining">1</span> lần/ngày
+            </div>
+            <button id="spinWheelBtn" class="primary">🎡 QUAY</button>
+            <div id="wheelResult" style="margin-top:12px; font-weight:bold; min-height:20px;"></div>
+        </div>
+    </div>
+    <div class="cookie-panel" style="flex:1;">
+        <div class="section-title">🥠 BÁNH QUY TIÊN TRI</div>
+        <div style="text-align:center;">
+            <div id="cookieDisplay" style="font-size:80px; cursor:pointer; transition: transform 0.3s;">🥠</div>
+            <button id="fortuneCookieBtn" class="primary">🔮 MỞ BÁNH QUY</button>
+            <div id="fortuneMessage" class="fortune-message">✨ Lời tiên tri xanh ✨</div>
+        </div>
+    </div>
+</div>
+
+    <div id="profilePanel" class="profile-panel hidden" style="display:none;">
+        <h3>🎋 HỒ SƠ XANH - <span id="profileUsername"></span></h3>
+        <div class="profile-header"><div id="avatarDisplay" style="width:80px;height:80px;background:#e1f3da;border-radius:40px;display:flex;align-items:center;justify-content:center;font-size:56px;">🚌</div><div><div class="avatar-buttons" style="display:flex;gap:8px;flex-wrap:wrap;"><div class="avatar-btn" data-avatar="🚌" style="background:#ebf7e5;padding:8px 16px;border-radius:40px;cursor:pointer;">🚌</div><div class="avatar-btn" data-avatar="🐉" style="background:#ebf7e5;padding:8px 16px;border-radius:40px;cursor:pointer;">🐉</div><div class="avatar-btn" data-avatar="🍃" style="background:#ebf7e5;padding:8px 16px;border-radius:40px;cursor:pointer;">🍃</div><div class="avatar-btn" data-avatar="🌿" style="background:#ebf7e5;padding:8px 16px;border-radius:40px;cursor:pointer;">🌿</div><div class="avatar-btn" data-avatar="🇻🇳" style="background:#ebf7e5;padding:8px 16px;border-radius:40px;cursor:pointer;">🇻🇳</div></div><button id="uploadAvatarBtn" style="margin-top:8px;">📷 Tải ảnh</button><input type="file" id="avatarUpload" accept="image/*" style="display:none"></div></div>
+        <div style="display:flex; gap:12px; margin-top:16px;"><input type="text" id="nicknameInput" placeholder="Biệt danh xanh"><select id="wallpaperSelect"><option value="default">🌿 Xanh mặc định</option><option value="dark">🌙 Tối dịu</option><option value="neon">💚 Xanh neon</option></select></div>
+        <textarea id="bioInput" rows="2" placeholder="Điều bạn yêu thích về xe buýt..."></textarea>
+        <div class="badge-list" id="badgeContainer">🌱 Huy hiệu sẽ hiện</div>
+        <button id="saveProfileBtn">💾 Lưu hồ sơ</button>
+    </div>
+
+    <div class="section-title">📦 BỘ SƯU TẬP <span id="collectionSummary"></span></div>
+    <div class="sort-bar"><span>Sắp xếp:</span><select id="raritySortSelect" class="sort-select"><option value="rarity_desc">⭐ Cao → Thấp</option><option value="rarity_asc">⭐ Thấp → Cao</option><option value="name_asc">🔤 Tên A-Z</option></select></div>
+    <div id="inventoryGrid" class="inventory-grid"></div>
+
+    <div class="section-title">🔄 GHÉP STICKER (2→1)</div>
+    <div style="display:flex; gap:12px;"><select id="tradeSelect" style="flex:1;"></select><button id="confirmTradeBtn">Trade xanh</button></div>
+
+    <div class="section-title">🏆 BẢNG XẾP HẠNG</div>
+    <div style="margin: 20px 0;">
+        <div class="section-title">🏆 BXH - LỰA CHỌN TRƯỜNG</div>
+        <select id="schoolFilter" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #9bd39b; font-size: 14px; margin-bottom: 12px;">
+            <option value="all">📊 Tất cả trường</option>
+            <option value="FTU">🏫 FTU</option>
+            <option value="NEU">🏫 NEU</option>
+            <option value="HLU">🏫 HLU</option>
+            <option value="HUST">🏫 HUST</option>
+        </select>
+        <div id="leaderboardList" style="background:#eef8e7; border-radius: 32px; padding: 16px; max-height: 240px; overflow-y: auto;"></div>
+    </div>
+    <footer>🌿 BusLoot VN — Catch Buses. Earn Loot. Xanh – Mát – Dễ chịu 🌿</footer>
+</div>
+
+<div id="authModal" class="modal hidden"><div class="modal-content"><div style="display:flex; gap:12px; margin-bottom:20px;"><button id="authLoginTab" style="flex:1;">ĐĂNG NHẬP</button><button id="authSignupTab" style="flex:1;">ĐĂNG KÝ</button></div>
+<form id="loginForm"><div class="form-group"><label>🌿 Tên đăng nhập</label><input type="text" id="loginUsername"></div><div class="form-group"><label>🔒 Mật khẩu</label><input type="password" id="loginPassword"></div><button type="submit">Đăng nhập</button><div id="authMessage" style="color:#2e8b57;"></div></form>
+<form id="signupForm" class="hidden"><div class="form-group"><label>🌱 Tên đăng nhập</label><input type="text" id="signupUsername"></div><div class="form-group"><label>🔒 Mật khẩu</label><input type="password" id="signupPassword"></div><div class="form-group"><label>🔁 Xác nhận</label><input type="password" id="signupConfirm"></div><div class="form-group"><label>🏫 Trường</label><select id="signupSchool"><option value="FTU">FTU - Ngoại thương</option><option value="HLU">HLU - Luật HN</option><option value="NEU">NEU - Kinh tế QD</option><option value="HUST">HUST - Bách Khoa</option></select></div><button type="submit">Tạo tài khoản</button><div id="authMessageSignup" style="color:#b8860b;"></div></form>
+<button id="closeAuthButton">🌿 Đóng</button></div></div>
+<div id="toast" class="toast hidden"></div>
+
+<script>
+    // ---------- STICKERS DATABASE ----------
+    const STICKERS_DB = {
+        common: [{ id:"bus_yellow", name:"🚌 Xe buýt xanh", desc:"PT thân thiện", icon:"🚌", title:"Lữ khách" },{ id:"ticket", name:"🎫 Vé xanh", desc:"Tấm vé tái chế", icon:"🎫", title:"Soát vé" },{ id:"gingerbrave", name:"🍪 GingerBrave", desc:"Cookie hữu cơ", icon:"🍪", title:"Người bánh" }],
+        uncommon: [{ id:"phone_tap", name:"📱 Quẹt thẻ", desc:"Thanh toán xanh", icon:"📱", title:"Công dân số" },{ id:"airpods", name:"🎧 AirPods tái chế", desc:"Âm nhạc xanh", icon:"🎧", title:"Tín đồ" },{ id:"strawberry", name:"🍓 Strawberry", desc:"Ngọt tự nhiên", icon:"🍓", title:"Hiệp sĩ" }],
+        rare: [{ id:"dragon_32", name:"🐉 Rồng xanh 32", desc:"Huyền thoại", icon:"🐉", title:"Long Kỵ" },{ id:"night_bus", name:"🌙 Xe đêm", desc:"Tiết kiệm năng lượng", icon:"🌙", title:"Lang thang" },{ id:"custard", name:"👑 Custard III", desc:"Hoàng tử", icon:"👑", title:"Vương giả" }],
+        epic: [{ id:"gold_badge", name:"🏆 Huy hiệu vàng", desc:"Vô địch xanh", icon:"🏆", title:"Vô địch" },{ id:"phoenix", name:"🔥 Phượng hoàng", desc:"NL mặt trời", icon:"🔥", title:"Phượng Hoàng" },{ id:"knight", name:"🛡️ Knight xanh", desc:"Bảo vệ môi trường", icon:"🛡️", title:"Kỵ sĩ" }],
+        legendary: [{ id:"bus_king", name:"👑 Vua xe buýt", desc:"Biểu tượng", icon:"👑", title:"Quốc Vương" },{ id:"urban_dragon", name:"🐉 Long mạch", desc:"Sức mạnh thiên nhiên", icon:"🐉", title:"Long Thần" }],
+        mythic: [{ id:"bus_star", name:"🌟 Tinh tú xanh", desc:"Cõi mộng", icon:"🌟", title:"Thần Thánh" }],
+        secret: [{ id:"black_book", name:"📕 Sổ tay xanh", desc:"Bí mật", icon:"📕", title:"Người giữ" }],
+        impossible: [{ id:"skeleton_wheel", name:"💀 Xương rồng", desc:"Huyền thoại", icon:"💀", title:"TỬ THẦN" },{ id:"void_bus", name:"🌀 Xe hư không", desc:"Đa chiều", icon:"🌀", title:"KẺ HỦY DIỆT" }]
+    };
+    // Expand sticker pools to requested target counts and generate distinct entries
+    const TARGET_COUNTS = { common:22, uncommon:16, rare:12, epic:10, legendary:6, mythic:3, secret:2, impossible:1 };
+    (function expandStickers(){
+        const emojiPools = {
+            common: ['🚌','🎫','🍪','🍓','🌿','🍀','🌱','🍞','☕','🍎','🍋','🍇','🥪','🥤','🍩','🍰','🍯','🍉','🍊','🍐','🥝','🍒','🥝','🥯'],
+            uncommon: ['📱','🎧','🎒','🧢','🕶️','🎒','🔋','🔑','📘','📗','🖊️','📎','🧷','🧸','🎟️','📷'],
+            rare: ['🐉','🌙','👑','🚀','🛡️','⚡','🔥','🌟','🧭','🧿','🗝️','🏵️'],
+            epic: ['🏆','🔥','🛡️','🐲','🌈','🎖️','💡','🎆','💫','🛰️'],
+            legendary: ['👑','🐉','🦄','🚩','🎇','🗡️'],
+            mythic: ['🌟','✨','☯️'],
+            secret: ['📕','📜'],
+            impossible: ['💀']
+        };
+        Object.keys(TARGET_COUNTS).forEach(rarity=>{
+            let target = TARGET_COUNTS[rarity] || 0;
+            let base = STICKERS_DB[rarity] && STICKERS_DB[rarity].length? STICKERS_DB[rarity] : [{ id: `${rarity}_base`, name: `${rarity} sticker`, desc: `${rarity} origin`, icon: emojiPools[rarity] ? emojiPools[rarity][0] : '❓', title: rarity }];
+            const out = [];
+            const rarityStyles = { common:'flat illustration', uncommon:'anime slice of life', rare:'cinematic photography', epic:'neon cyberpunk', legendary:'urban myth', mythic:'surreal', secret:'horror liminal', impossible:'masterpiece cinematic' };
+            for(let i=0;i<target;i++){
+                const icon = (emojiPools[rarity] && emojiPools[rarity][i % emojiPools[rarity].length]) || base[i % base.length].icon || '❓';
+                const idx = i+1;
+                const id = `${rarity}_${idx}`;
+                const name = `${icon} ${rarity.charAt(0).toUpperCase()+rarity.slice(1)} #${idx}`;
+                const desc = `${rarity.charAt(0).toUpperCase()+rarity.slice(1)} sticker số ${idx}`;
+                out.push({ id, name, desc, icon, title: `${rarity} ${idx}`, style: rarityStyles[rarity] || '' });
+            }
+            STICKERS_DB[rarity] = out;
+        });
+    })();
+    // Rarity probabilities (percent). Sum with IMPOSSIBLE equals 100%.
+    const BASE_RARITY = [
+        { name:"common", chance:52, display:"COMMON", color:"#9bd39b" },
+        { name:"uncommon", chance:25, display:"UNCOMMON", color:"#6fcf97" },
+        { name:"rare", chance:12, display:"RARE", color:"#4d9eff" },
+        { name:"epic", chance:6, display:"EPIC", color:"#bd6ae0" },
+        { name:"legendary", chance:3, display:"LEGEND", color:"#f3a333" },
+        { name:"mythic", chance:1.3, display:"MYTHIC", color:"#f06a9e" },
+        { name:"secret", chance:0.699, display:"SECRET", color:"#ffde6e" }
+    ];
+    const IMPOSSIBLE = { name:"impossible", chance:0.001, display:"✦ IMPOSSIBLE ✦", color:"#ff66dd" };
+    const DAILY_REWARDS = [1,1,2,2,3,3,5];
+    const WHEEL_SECTORS = [
+        { name:"+1 Roll", value:1, type:"open", color:"#9bde7a" },{ name:"+2 Roll", value:2, type:"open", color:"#c0e86a" },{ name:"Sticker Common", value:"common", type:"sticker", color:"#b0c4a0" },
+        { name:"Sticker Uncommon", value:"uncommon", type:"sticker", color:"#85d685" },{ name:"+3 Roll", value:3, type:"open", color:"#e6dd6e" },{ name:"Sticker Rare", value:"rare", type:"sticker", color:"#70b8ff" },
+        { name:"+5 Roll", value:5, type:"open", color:"#cd94e0" },{ name:"Sticker Epic", value:"epic", type:"sticker", color:"#f27bae" }
+    ];
+    const FORTUNE_MSGS = ["🍃 Chuyến xe xanh may mắn!", "🌿 Sắp có sticker hiếm!", "🍀 Tuyến mới rộng mở!", "💚 Xe chạy bằng năng lượng mặt trời!", "🌱 Vòng quay may mắn đang chờ!", "🍃 Điểm danh liên tục nhận quà!", "✨ Hãy lan tỏa yêu thương!"];
+
+    let currentUser = null;
+    let users = JSON.parse(localStorage.getItem("busloot_users")) || {};
+    let inventory = {}, rideCount = 0, streakDays = 0, availableOpens = 0, consecutiveMiss = 0, luckActive = false;
+    let rideInProgress = false, rideTimer = null, audioCtx = null, wheelAngle = 0, isSpinning = false;
+
+    if (Object.keys(users).length === 0) {
+        const now = new Date(), ts = now.getTime(), d = now.toDateString();
+        users["demo"] = { password:"123", school:"FTU", inventory:{}, rideCount:3, streakDays:1, availableOpens:2, consecutiveMiss:0, lastLoginTimestamp:ts, lastLoginDate:d, loginStreak:1, dailyClaimed:[false,false,false,false,false,false,false], lastWheelDate:"", lastCookieDate:"" };
+        users["admin"] = { password:"admin", school:"HUST", inventory:{}, rideCount:5, streakDays:3, availableOpens:3, consecutiveMiss:0, lastLoginTimestamp:ts, lastLoginDate:d, loginStreak:3, dailyClaimed:[true,true,true,false,false,false,false], lastWheelDate:"", lastCookieDate:"" };
+        localStorage.setItem("busloot_users", JSON.stringify(users));
+    }
+
+    // ---------- AUDIO EFFECTS ----------
+    function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    function playTick() { initAudio(); if(!audioCtx)return; let o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); o.frequency.value=880; g.gain.value=0.05; o.start(); g.gain.exponentialRampToValueAtTime(0.00001,audioCtx.currentTime+0.12); o.stop(audioCtx.currentTime+0.12); audioCtx.resume(); }
+    function playSpin() { initAudio(); if(!audioCtx)return; let o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); o.frequency.value=500; g.gain.value=0.1; o.start(); g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+0.5); o.stop(audioCtx.currentTime+0.5); audioCtx.resume(); }
+    function playCookie() { initAudio(); if(!audioCtx)return; let o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); o.frequency.value=320; g.gain.value=0.08; o.start(); g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+0.3); o.stop(audioCtx.currentTime+0.3); audioCtx.resume(); }
+    function playRoll() { initAudio(); if(!audioCtx)return; let o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); o.frequency.value=523; g.gain.value=0.1; o.start(); g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+0.4); o.stop(audioCtx.currentTime+0.4); audioCtx.resume(); }
+    function playCelebrate() { initAudio(); if(!audioCtx)return; let o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); o.frequency.value=740; g.gain.value=0.12; o.start(); g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+0.7); o.stop(audioCtx.currentTime+0.7); audioCtx.resume(); }
+
+
+
+    // ---------- GAME HELPERS ----------
+    function getRarityColor(r) { let f=[...BASE_RARITY,IMPOSSIBLE].find(c=>c.name===r); return f?f.color:"#888"; }
+    function getRarityDisplay(r) { let f=[...BASE_RARITY,IMPOSSIBLE].find(c=>c.name===r); return f?f.display:r.toUpperCase(); }
+    function rollRarity(){
+        // Build weighted list; when luckActive, multiply chances by 10
+        const multiplier = luckActive?10:1;
+        const entries = BASE_RARITY.map(r=>({ name:r.name, chance: r.chance * multiplier }))
+            .concat([{ name: IMPOSSIBLE.name, chance: IMPOSSIBLE.chance * multiplier }]);
+        const total = entries.reduce((s,e)=>s+e.chance,0);
+        let r = Math.random() * total;
+        let cum = 0;
+        for(let e of entries){ cum += e.chance; if(r < cum){
+            if(e.name === IMPOSSIBLE.name){
+                consecutiveMiss = 0;
+                luckActive = false;
+                if(currentUser && users[currentUser]){ users[currentUser].luckActive = false; saveData(); }
+                return 'impossible';
+            }
+            // normal rarity
+            consecutiveMiss++;
+            if(consecutiveMiss >= 10){ luckActive = true; showToast('⚠️ X10 LUCK ACTIVE!'); if(currentUser && users[currentUser]){ users[currentUser].luckActive = true; saveData(); } }
+            return e.name;
+        } }
+        consecutiveMiss++; if(consecutiveMiss>=10){ luckActive = true; showToast('⚠️ X10 LUCK ACTIVE!'); if(currentUser && users[currentUser]){ users[currentUser].luckActive = true; saveData(); } }
+        return 'common';
+    }
+    function rollNormal(){ let r=Math.random()*100,cum=0; for(let rar of BASE_RARITY){ cum+=rar.chance; if(r<cum) return rar.name; } return "common"; }
+    function getRandomSticker(rarity){ let arr=STICKERS_DB[rarity]; if(!arr) return {id:"unknown",name:"???",icon:"❓",desc:"???",rarity}; let s=arr[Math.floor(Math.random()*arr.length)]; return {...s,rarity}; }
+    function saveData(){ if(currentUser&&users[currentUser]){ users[currentUser].inventory=inventory; users[currentUser].rideCount=rideCount; users[currentUser].streakDays=streakDays; users[currentUser].availableOpens=availableOpens; users[currentUser].consecutiveMiss=consecutiveMiss; users[currentUser].luckActive = !!luckActive; localStorage.setItem("busloot_users",JSON.stringify(users)); } }
+    function addSticker(sticker,rarity){ let key=`${rarity}_${sticker.id}`; if(!inventory[key]) inventory[key]={...sticker,rarity,count:0}; inventory[key].count++; saveData(); updateUI(); }
+    function showToast(msg){
+        let t=document.getElementById("toast");
+        if(t){
+            // Cho phép xuống dòng khi msg chứa "\n"
+            t.innerHTML = String(msg).replace(/\n/g,'<br>');
+            t.classList.remove("hidden");
+            const duration = 20000; // 20s
+            const hide = () => t.classList.add("hidden");
+            if(window.__buslootToastTimer) clearTimeout(window.__buslootToastTimer);
+            if(window.__buslootToastInteractHandler){
+                window.removeEventListener('pointerdown', window.__buslootToastInteractHandler);
+                window.removeEventListener('keydown', window.__buslootToastInteractHandler);
+            }
+            window.__buslootToastInteractHandler = () => {
+                if(window.__buslootToastTimer) clearTimeout(window.__buslootToastTimer);
+                hide();
+            };
+            window.addEventListener('pointerdown', window.__buslootToastInteractHandler, { once: true });
+            window.addEventListener('keydown', window.__buslootToastInteractHandler, { once: true });
+            window.__buslootToastTimer = setTimeout(hide, duration);
+        }
+    }
+
+    function createConfetti(){ for(let i=0;i<40;i++){ let c=document.createElement("div"); c.style.cssText=`position:fixed; width:7px; height:7px; background:hsl(${Math.random()*360},80%,65%); left:${Math.random()*window.innerWidth}px; top:-10px; z-index:9999; border-radius:50%; pointer-events:none;`; document.body.appendChild(c); c.animate([{transform:"translateY(0)",opacity:1},{transform:`translateY(${window.innerHeight+15}px)`,opacity:0}],{duration:1200}).onfinish=()=>c.remove(); } }
+    function showMystical(){ let div=document.createElement("div"); div.className="mystical-popup"; div.innerHTML=`<h2>✨ CHÚC MỪNG ✨</h2><p>Bạn vừa mở được IMPOSSIBLE!<br>🌟 Huyền thoại xanh 🌟</p>`; document.body.appendChild(div); setTimeout(()=>div.remove(),2300); playCelebrate(); createConfetti(); }
+
+    function drawWheel(angle=0){
+        let canvas=document.getElementById("wheelCanvas"); if(!canvas)return;
+        let ctx=canvas.getContext("2d"), size=canvas.width, c=size/2, r=size/2-12, step=Math.PI*2/WHEEL_SECTORS.length;
+        ctx.clearRect(0,0,size,size);
+        for(let i=0;i<WHEEL_SECTORS.length;i++){
+            let start=i*step+angle, end=start+step;
+            ctx.beginPath(); ctx.fillStyle=WHEEL_SECTORS[i].color; ctx.moveTo(c,c); ctx.arc(c,c,r,start,end); ctx.fill();
+            ctx.save(); ctx.translate(c,c); ctx.rotate(start+step/2); ctx.fillStyle="white"; ctx.font="bold 11px 'Segoe UI'"; ctx.fillText(WHEEL_SECTORS[i].name.substring(0,8), r/2.2, 5); ctx.restore();
+        }
+        ctx.beginPath(); ctx.fillStyle="#3e7844"; ctx.arc(c,c,16,0,2*Math.PI); ctx.fill(); ctx.fillStyle="white"; ctx.font="bold 16px monospace"; ctx.fillText("🌿",c-8,c+5);
+    }
+    function updateWheelDailyUI(){
+        const btn = document.getElementById("spinWheelBtn");
+        const remainingEl = document.getElementById("wheelDailyRemaining");
+        if(!btn || !remainingEl) return;
+        if(!currentUser || !users[currentUser]){
+            remainingEl.textContent = "0";
+            btn.disabled = true;
+            btn.textContent = "🎡 QUAY";
+            return;
+        }
+        const today = new Date().toDateString();
+        const usedToday = users[currentUser].lastWheelDate === today;
+        const remaining = usedToday ? 0 : 1;
+        remainingEl.textContent = String(remaining);
+        btn.disabled = usedToday || isSpinning;
+        btn.textContent = usedToday ? "🎡 ĐÃ QUAY" : "🎡 QUAY";
+        // nếu đã quay hôm nay thì 1 lần/ngày = 0 lần còn lại
+    }
+
+    async function spinWheel(){
+        if(!currentUser){ showToast("Đăng nhập để quay!"); return; }
+        let today=new Date().toDateString();
+        if(users[currentUser].lastWheelDate===today){ showToast("Hôm nay đã quay rồi!"); return; }
+        if(isSpinning) return;
+        isSpinning=true; playSpin();
+        let btn=document.getElementById("spinWheelBtn"); btn.disabled=true;
+        let final=Math.floor(Math.random()*WHEEL_SECTORS.length);
+        let step=Math.PI*2/WHEEL_SECTORS.length;
+        let startAngle=wheelAngle;
+        let pointerAngle=Math.PI; // Pointer ở bên trái (π radian), chỉ vào center sector
+        let sectorCenter=final*step+step/2;
+        let targetRotation=pointerAngle-sectorCenter;
+        let target=startAngle+Math.PI*2*8+targetRotation;
+        let dur=1800, startTime=performance.now();
+        function anim(now){
+            let t=Math.min(1,(now-startTime)/dur), e=1-Math.pow(1-t,3), cur=startAngle+(target-startAngle)*e;
+            drawWheel(cur);
+            if(t<1) requestAnimationFrame(anim);
+            else{
+                wheelAngle=target%(Math.PI*2); drawWheel(wheelAngle);
+                let reward=WHEEL_SECTORS[final];
+                users[currentUser].lastWheelDate=today;
+                updateWheelDailyUI();
+        if(reward.type==="open"){ availableOpens+=reward.value; showToast(`🎡 +${reward.value} lượt roll!`); document.getElementById("wheelResult").innerHTML=`🎉 +${reward.value} lượt roll 🎉`; }
+                else{ let sticker=getRandomSticker(reward.value); addSticker(sticker,reward.value); showToast(`🎡 Sticker ${sticker.name}!`); document.getElementById("wheelResult").innerHTML=`🎉 Sticker ${sticker.name} 🎉`; }
+                // Thêm hiệu ứng thông báo "đi quãng đường" / "tiết kiệm" / "giảm CO2" theo mỗi lần gacha (mỗi lần mở capsule)
+                if(currentUser && users[currentUser]){
+                    const distanceKm = 3 + Math.random() * 7; // ~3-10km
+                    const savedVnd = 5000 + Math.floor(Math.random() * 2500); // ~5k-7.5k
+                    const savedCo2Kg = 0.2 + Math.random() * 0.3; // ~0.2-0.5 kg
+                    // Hiển thị thông báo gắn với lần gacha
+                    showToast(`🛣️ Bạn đã "đi" ~${distanceKm.toFixed(1)} km\n💰 Tiết kiệm ~${savedVnd.toLocaleString('vi-VN')}đ\n🌍 Giảm ~${savedCo2Kg.toFixed(2)}kg CO₂`);
+                }
+                // Khuyến khích đi xe buýt mỗi lần roll ra thưởng
+                if(currentUser && users[currentUser]){ const lines=["💚 Nhớ đi xe buýt để nhận thêm quà nhé!","🌿 Đi xe buýt mỗi ngày - loot đầy túi!","🚌 Lên xe xanh ngay thôi!","🍃 Đi xe buýt để tưới cây và nhận thêm roll!" ]; showToast(lines[Math.floor(Math.random()*lines.length)]); }
+                // Tưới cây: mỗi lần quay vòng quay may mắn +1 nước
+                if(currentUser && users[currentUser]){
+                    users[currentUser].plantWater=(users[currentUser].plantWater||0)+1;
+                    showToast(`💧 Bạn vừa tưới cây! Nước: ${users[currentUser].plantWater}`);
+                }
+
+                saveData(); updateUI(); createConfetti(); isSpinning=false; btn.disabled=true;
+            }
+        }
+        requestAnimationFrame(anim);
+    }
+
+    async function openCapsule(){
+        if(!currentUser){ showToast("Đăng nhập!"); return; }
+        if(availableOpens<=0){ showToast("Hết lượt roll! Đi xe hoặc điểm danh."); return; }
+        let btn=document.getElementById("openButton"),loot=document.getElementById("lootSlot");
+        btn.disabled=true; playRoll();
+        loot.innerHTML=`<div><div class="dice-spin" style="font-size:64px;">🎲</div><p>🌀 ĐANG QUAY... 🌀</p><p>${luckActive?"⭐ X10 LUCK ACTIVE ⭐":`💚 ${Math.max(0,10-consecutiveMiss)} rolls đến x10 luck`}</p></div>`;
+        await new Promise(r=>setTimeout(r,1600));
+        let rarity=rollRarity(),sticker=getRandomSticker(rarity); availableOpens--;
+        addSticker(sticker,rarity); createConfetti();
+        if(rarity==="impossible") showMystical(); else playCelebrate();
+        let col=getRarityColor(rarity);
+        loot.innerHTML=`<div style="animation:csgoReveal 0.4s;"><div style="font-size:70px; filter:drop-shadow(0 0 8px ${col});">${sticker.icon}</div><div style="font-size:24px; font-weight:bold; color:${col};">${sticker.name}</div><div style="background:${col}; display:inline-block; padding:4px 20px; border-radius:60px;">${getRarityDisplay(rarity)}</div><div>✨${sticker.desc}✨</div></div>`;
+        btn.disabled=false; showToast(`🎉 Nhận ${sticker.name} (${rarity})!`); saveData(); updateUI();
+    }
+
+    function startRide(){
+        if(!currentUser){ showToast("Đăng nhập!"); return; }
+        if(rideInProgress){ showToast("Đang trên xe xanh!"); return; }
+        let route=document.getElementById("busRouteSelect").options[document.getElementById("busRouteSelect").selectedIndex]?.text.split(" - ")[0]||"Tuyến 32", point=document.getElementById("pickupPointSelect").value;
+        rideInProgress=true; let btn=document.getElementById("startRideButton"),openBtn=document.getElementById("openButton"),statusDiv=document.getElementById("rideStatus");
+        btn.disabled=true; openBtn.disabled=true;
+        statusDiv.innerHTML=`🚌 Đang di chuyển trên ${route} - Đón tại ${point}... ⏳ 5s ⏳`; let count=5;
+        let interval=setInterval(()=>{ if(rideInProgress){ playTick(); statusDiv.innerHTML=`⏳ ${count} giây nữa đến nơi ⏳`; count--; if(count<0)clearInterval(interval); } },1000);
+        if(rideTimer) clearTimeout(rideTimer);
+        rideTimer=setTimeout(()=>{ if(rideInProgress){
+            rideInProgress=false;
+            rideCount++;
+            availableOpens++;
+            // Tưới cây + thưởng roll sau mỗi chuyến xe
+            if(currentUser && users[currentUser]){
+                users[currentUser].plantWater=(users[currentUser].plantWater||0)+1;
+                // Ước lượng tiết kiệm khí thải & tiền (mang tính game)
+                const savedVnd=5000 + Math.floor(Math.random()*2500); // ~5k-7.5k
+                const savedCo2Kg=0.2 + Math.random()*0.3; // ~0.2-0.5 kg
+                const msgRoll=`🎉 Thêm 1 lượt roll sau chuyến xe! Tổng chuyến: ${rideCount}`;
+                const msgEnv=`💰 Tiết kiệm ~${savedVnd.toLocaleString('vi-VN')}đ • 🌍 Giảm ~${savedCo2Kg.toFixed(2)}kg CO₂`; 
+                showToast(`${msgRoll}\n${msgEnv}\n🌿 Hãy phát huy nhé!`);
+            } else {
+                showToast(`🎁 +1 lượt roll! Tổng: ${rideCount} chuyến`);
+            }
+
+            saveData();
+            updateUI();
+            statusDiv.innerHTML=`✅ Đã đến ${point}! +1 lượt roll ✅`;
+            btn.disabled=false;
+            openBtn.disabled=false;
+        } clearInterval(interval); },5000);
+    }
+
+    function proposeTrade(){
+        let selected=document.getElementById("tradeSelect").value; if(!selected){ showToast("Chọn sticker"); return; }
+        let st=inventory[selected]; if(!st||st.count<2){ showToast("Cần 2 sticker cùng loại"); return; }
+        let order=["common","uncommon","rare","epic","legendary","mythic","secret","impossible"], idx=order.indexOf(st.rarity);
+        if(idx>=order.length-1){ showToast("Đã cấp cao nhất!"); return; }
+        let target=order[idx+1]; inventory[selected].count-=2; if(inventory[selected].count===0) delete inventory[selected];
+        let newSticker=getRandomSticker(target); addSticker(newSticker,target); saveData(); updateUI(); showToast(`Trade thành công! Nhận ${newSticker.name}`);
+    }
+
+    function updateInventoryDisplay(){
+        let grid=document.getElementById("inventoryGrid"); if(!grid) return;
+        let stickers=Object.values(inventory), mode=document.getElementById("raritySortSelect")?.value||"rarity_desc";
+        let ord=["impossible","secret","mythic","legendary","epic","rare","uncommon","common"];
+        if(mode==="rarity_asc") stickers.sort((a,b)=>ord.indexOf(a.rarity)-ord.indexOf(b.rarity));
+        else if(mode==="rarity_desc") stickers.sort((a,b)=>ord.indexOf(b.rarity)-ord.indexOf(a.rarity));
+        else if(mode==="name_asc") stickers.sort((a,b)=>a.name.localeCompare(b.name));
+        grid.innerHTML=stickers.length?stickers.map(s=>`<div class="inventory-tile"><div class="tile-badge ${s.rarity}"></div><div class="tile-art">${s.icon}</div><div class="tile-name" style="color:${getRarityColor(s.rarity)}">${s.name}</div><div class="tile-style">${s.style||''}</div><div class="tile-count">x${s.count}</div></div>`).join(""):`<div style="grid-column:1/-1;text-align:center;">🌱 Chưa có sticker, đi xe buýt nhé 🌱</div>`;
+    }
+
+    function updateTradeSelect(){ let sel=document.getElementById("tradeSelect"); if(!sel) return; sel.innerHTML='<option value="">Chọn sticker để trade</option>'; Object.entries(inventory).forEach(([k,st])=>{ let opt=document.createElement("option"); opt.value=k; opt.textContent=`${st.icon} ${st.name} x${st.count} - ${st.rarity}`; sel.appendChild(opt); }); }
+    function updateLeaderboard(){ 
+        let lb=document.getElementById("leaderboardList"); 
+        if(!lb) return; 
+        let schoolFilter=document.getElementById("schoolFilter")?.value||"all";
+        let filtered=Object.entries(users).filter(([u,d])=>schoolFilter==="all"||d.school===schoolFilter);
+        let sorted=filtered.map(([u,d])=>({username:u,score:Object.values(d.inventory||{}).reduce((a,b)=>a+b.count,0),school:d.school||"?"})).sort((a,b)=>b.score-a.score).slice(0,6); 
+        let medals=["🥇","🥈","🥉"], colors=["#FFD700","#C0C0C0","#CD7F32"]; 
+        lb.innerHTML=sorted.map((u,i)=>`<div style="padding:8px; border-bottom:1px solid #cae2b5; background:${i<3?colors[i]+"20":"transparent"}; border-left:4px solid ${i<3?colors[i]:"transparent"}; font-weight:${i<3?"bold":"normal"};">${medals[i]||"🏅"}${i+1} ${u.username} (${u.school}) - ${u.score} stickers</div>`).join("")||"Chưa có người chơi"; 
+    }
+    function checkDailyStreak(){
+        if(!currentUser) return; let user=users[currentUser], now=new Date(), today=now.toDateString(), last=user.lastLoginTimestamp||0, hours=(now.getTime()-last)/3600000;
+        if(user.lastLoginDate!==today){ if(hours<=30&&last>0) user.loginStreak=Math.min(7,(user.loginStreak||0)+1); else{ user.loginStreak=1; user.dailyClaimed=[false,false,false,false,false,false,false]; } user.lastLoginDate=today; user.lastLoginTimestamp=now.getTime(); streakDays=user.loginStreak; saveData(); showToast(`🔥 Streak ${streakDays} ngày!`); } else streakDays=user.loginStreak||1;
+        document.getElementById("streakValue")&&(document.getElementById("streakValue").innerText=`${streakDays} ngày`); renderDailyCalendar(); document.getElementById("streakInfo")&&(document.getElementById("streakInfo").innerHTML=`🌿 Streak hiện tại: ${streakDays}/7 ngày`);
+    }
+    function renderDailyCalendar(){
+        if(!currentUser) return; let user=users[currentUser], container=document.getElementById("dailyCalendar"); if(!container) return;
+        let streak=user.loginStreak||1, claimed=user.dailyClaimed||[false,false,false,false,false,false,false], today=new Date().toDateString(), canClaim=(user.lastLoginDate===today)&&!claimed[streak-1];
+        container.innerHTML="";
+        for(let i=0;i<7;i++){ let day=document.createElement("div"); day.className=`daily-day ${claimed[i]?'claimed':''} ${(streak===i+1)?'today':''} ${canClaim&&streak===i+1&&!claimed[i]?'available':''}`; day.innerHTML=`<div>Ngày ${i+1}</div><div class="daily-reward">🌿 +${DAILY_REWARDS[i]}</div><div>${claimed[i]?'✓':(streak===i+1?'📅':'🔒')}</div>`; if(canClaim&&streak===i+1&&!claimed[i]) day.onclick=()=>claimDaily(); container.appendChild(day); }
+    }
+    function claimDaily(){ let user=users[currentUser], streak=user.loginStreak; if(user.dailyClaimed[streak-1]){ showToast("Hôm nay đã nhận!"); return; } let reward=DAILY_REWARDS[streak-1]; user.availableOpens=(user.availableOpens||0)+reward; user.dailyClaimed[streak-1]=true; saveData(); loadUserData(currentUser); renderDailyCalendar(); updateUI(); showToast(`🎁 +${reward} lượt roll!`); createConfetti(); }
+    function loadUserData(u){ let d=users[u]; if(d){ inventory=d.inventory||{}; rideCount=d.rideCount||0; streakDays=d.streakDays||0; availableOpens=d.availableOpens||0; consecutiveMiss=d.consecutiveMiss||0; luckActive=!!d.luckActive; if(!d.dailyClaimed) d.dailyClaimed=[false,false,false,false,false,false,false]; if(!d.lastLoginDate) d.lastLoginDate=new Date().toDateString(); if(!d.lastLoginTimestamp) d.lastLoginTimestamp=Date.now(); if(!d.lastWheelDate) d.lastWheelDate=""; if(!d.lastCookieDate) d.lastCookieDate=""; updateUI(); checkDailyStreak(); } }
+    function updateUI(){
+        document.getElementById("rideCount")&&(document.getElementById("rideCount").innerText=rideCount);
+        document.getElementById("availableOpens")&&(document.getElementById("availableOpens").innerText=availableOpens);
+        let luckText=luckActive?"🎯 X10 LUCK ACTIVE!":`🌿 ${Math.max(0,10-consecutiveMiss)} rolls tới x10 luck`;
+        document.getElementById("pityCounter")&&(document.getElementById("pityCounter").innerHTML=luckText);
+        // Cập nhật UI nước tưới cây (nếu có)
+        if(currentUser && users[currentUser]){ let w=users[currentUser].plantWater||0; let el=document.getElementById("plantWaterCount"); if(el) el.textContent=String(w); }
+        document.getElementById("openButton").disabled=!(availableOpens>0&&!rideInProgress);
+        if(currentUser&&users[currentUser]){
+            document.getElementById("dailySection").style.display="block";
+            document.getElementById("profileUsername").innerText=currentUser;
+            document.getElementById("userLabel").innerHTML=`🌿 ${currentUser} • ${users[currentUser].school||"FTU"} 🌿`;
+            document.getElementById("toggleAuthButton").innerHTML="🚪 Đăng xuất";
+            document.getElementById("profileIcon").style.display="flex";
+            loadProfileUI();
+        } else {
+            document.getElementById("dailySection").style.display="none";
+            document.getElementById("userLabel").innerHTML="🌱 Chưa đăng nhập";
+            document.getElementById("toggleAuthButton").innerHTML="🌿 Đăng nhập";
+            document.getElementById("profileIcon").style.display="none";
+            document.getElementById("profilePanel").style.display="none";
+        }
+        updateWheelDailyUI();
+        updateInventoryDisplay(); updateTradeSelect(); updateLeaderboard();
+        let total=Object.values(STICKERS_DB).reduce((a,b)=>a+b.length,0), collected=Object.keys(inventory).length;
+        document.getElementById("collectionSummary")&&(document.getElementById("collectionSummary").innerText=`${collected}/${total} (${Math.round(collected/total*100)}%)`);
+    }
+    function loadProfileUI(){ if(!currentUser||!users[currentUser]?.profile) return; let p=users[currentUser].profile; if(p.avatar) document.getElementById("avatarDisplay").innerHTML=p.avatar; document.getElementById("nicknameInput")&&(document.getElementById("nicknameInput").value=p.nickname||""); document.getElementById("bioInput")&&(document.getElementById("bioInput").value=p.bio||""); document.getElementById("wallpaperSelect")&&(document.getElementById("wallpaperSelect").value=p.wallpaper||"default"); applyWallpaper(p.wallpaper||"default"); let badgeDiv=document.getElementById("badgeContainer"); if(badgeDiv){ let badges=[]; if(rideCount>=5) badges.push("🚌 5 chuyến xanh"); if(availableOpens>=15) badges.push("🌿 15 lần mở"); if(Object.keys(inventory).length>=8) badges.push("🍃 Sưu tập 8"); badgeDiv.innerHTML=badges.length?badges.map(b=>`<span class="badge">🏅 ${b}</span>`).join(""):"🌱 Chưa có huy hiệu, hãy chơi thêm!"; } }
+    function applyWallpaper(theme){ if(theme==="dark") document.body.style.background="#d8e6cf"; else if(theme==="neon") document.body.style.background="#eaffdd"; else document.body.style.background="#eef5e9"; }
+    function logout(){ currentUser=null; inventory={}; rideCount=streakDays=availableOpens=consecutiveMiss=0; luckActive=false; updateUI(); showToast("Đã đăng xuất"); document.getElementById("profilePanel").style.display="none"; }
+    function toggleProfile(){ let panel=document.getElementById("profilePanel"); if(panel.style.display==="none"||panel.style.display==="") panel.style.display="block"; else panel.style.display="none"; }
+
+    function updateDateTime() {
+        const now = new Date();
+        const day = now.getDate().toString().padStart(2, '0');
+        const month = (now.getMonth()+1).toString().padStart(2, '0');
+        const year = now.getFullYear();
+        document.getElementById("liveDate").innerHTML = `${day}/${month}/${year}`;
+        document.getElementById("liveClock").innerHTML = now.toLocaleTimeString('vi-VN');
+        requestAnimationFrame(() => setTimeout(updateDateTime, 1000));
+    }
+
+    function updateMapRoute(origin,dest){ let o=encodeURIComponent(origin+", Hà Nội"), d=encodeURIComponent(dest+", Hà Nội"); let iframe=document.getElementById("googleMapIframe"); iframe.src=`https://www.google.com/maps/embed/v1/directions?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&origin=${o}&destination=${d}&mode=transit`; iframe.onerror=()=>{ iframe.src=`https://www.google.com/maps/embed?pb=!1m28!1m12!1m3!1d3723.5!2d105.841!3d21.021!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m13!3e3!4m5!1s0x3135ab9a3e3e3e3d%3A0x123456789!2z${o}!3m2!1d21.0285!2d105.8542!4m5!1s0x3135ab9a3e3e3e3d%3A0x123456789!2z${d}!3m2!1d21.0285!2d105.8542!5e0!3m2!1svi!2s!4v1700000000000!5m2!1svi!2s`; }; }
+    function verifyRoute(){ let pickup=document.getElementById("pickupPointSelect").value, dest=document.getElementById("destinationSelect").value; document.getElementById("locationStatus").innerHTML=`🌿 Lộ trình xanh từ ${pickup} → ${dest} đang hiển thị`; updateMapRoute(pickup,dest); showToast(`Đã vẽ lộ trình: ${pickup} → ${dest}`); }
+    function gpsLocate(){ if(!navigator.geolocation){ showToast("Trình duyệt không hỗ trợ GPS"); return; } navigator.geolocation.getCurrentPosition((pos)=>{ let lat=pos.coords.latitude,lng=pos.coords.longitude; showToast(`📍 Vị trí: ${lat.toFixed(4)}, ${lng.toFixed(4)}`); document.getElementById("locationStatus").innerHTML=`🌍 Bạn ở (${lat.toFixed(2)}, ${lng.toFixed(2)}). Chọn tuyến gần nhất.`; document.getElementById("busRouteSelect").value="32"; },(err)=>{ showToast("Không lấy được vị trí: "+err.message); }); }
+    async function fortuneCookie(){
+        if(!currentUser){ showToast("Đăng nhập!"); return; }
+        let today=new Date().toDateString(); if(users[currentUser].lastCookieDate===today){ showToast("Hôm nay đã nhận bánh quy!"); return; }
+        playCookie();
+        let cookieDiv=document.getElementById("cookieDisplay"); cookieDiv.classList.add("cookie-crack"); setTimeout(()=>cookieDiv.classList.remove("cookie-crack"),300);
+
+        let msg=FORTUNE_MSGS[Math.floor(Math.random()*FORTUNE_MSGS.length)], rewardType=Math.random()<0.7?"open":"sticker", rewardText="";
+        if(rewardType==="open"){ let bonus=Math.floor(Math.random()*2)+1; availableOpens+=bonus; rewardText=`+${bonus} lượt roll`; }else{ let rarity=["common","uncommon"][Math.floor(Math.random()*2)], sticker=getRandomSticker(rarity); addSticker(sticker,rarity); rewardText=`Sticker ${sticker.name} (${rarity})`; }
+        users[currentUser].lastCookieDate=today; saveData(); updateUI();
+        let rect=cookieDiv.getBoundingClientRect(), x=rect.left+rect.width/2-130, y=rect.top+rect.height/2-50;
+        let paper=document.createElement("div"); paper.className="paper-note"; paper.innerHTML=`📜 ${msg} 📜`; paper.style.left=x+"px"; paper.style.top=y+"px"; let cookiePanel=cookieDiv.closest(".cookie-panel"); if(cookiePanel) cookiePanel.appendChild(paper); else document.body.appendChild(paper); setTimeout(()=>paper.remove(),2800);
+        document.getElementById("fortuneMessage").innerHTML=`🥠 ${msg}<br>🎁 ${rewardText}`; showToast(`🍪 ${msg}`); createConfetti();
+    }
+
+    // Event listeners
+    document.getElementById("toggleAuthButton").onclick=()=>{ if(currentUser) logout(); else document.getElementById("authModal").classList.remove("hidden"); };
+    document.getElementById("profileIcon").onclick=()=>{ if(currentUser) toggleProfile(); };
+    document.getElementById("closeAuthButton").onclick=()=>document.getElementById("authModal").classList.add("hidden");
+    document.getElementById("loginForm").onsubmit=e=>{ e.preventDefault(); let u=document.getElementById("loginUsername").value.trim(), p=document.getElementById("loginPassword").value; if(users[u]&&users[u].password===p){ currentUser=u; loadUserData(u); document.getElementById("authModal").classList.add("hidden"); showToast(`Chào mừng ${u} đến BusLoot xanh!`); } else document.getElementById("authMessage").innerText="Sai tài khoản/mật khẩu"; };
+    document.getElementById("signupForm").onsubmit=e=>{ e.preventDefault(); let u=document.getElementById("signupUsername").value.trim(), p=document.getElementById("signupPassword").value, c=document.getElementById("signupConfirm").value, school=document.getElementById("signupSchool").value; if(p!==c){ document.getElementById("authMessageSignup").innerText="Mật khẩu không khớp"; return; } if(users[u]){ document.getElementById("authMessageSignup").innerText="Tên đã tồn tại"; return; } let now=new Date(); users[u]={ password:p, school, inventory:{}, rideCount:0, streakDays:0, availableOpens:2, consecutiveMiss:0, lastLoginDate:now.toDateString(), lastLoginTimestamp:now.getTime(), loginStreak:1, dailyClaimed:[false,false,false,false,false,false,false], lastWheelDate:"", lastCookieDate:"" }; currentUser=u; loadUserData(u); document.getElementById("authModal").classList.add("hidden"); showToast("Đăng ký thành công!"); localStorage.setItem("busloot_users",JSON.stringify(users)); };
+    document.getElementById("openButton").onclick=openCapsule;
+    document.getElementById("startRideButton").onclick=startRide;
+    document.getElementById("tradeButton").onclick=proposeTrade;
+    document.getElementById("confirmTradeBtn").onclick=proposeTrade;
+    document.getElementById("inventoryButton").onclick=()=>document.getElementById("inventoryGrid").scrollIntoView({behavior:"smooth"});
+    document.getElementById("saveProfileBtn").onclick=()=>{ if(currentUser&&users[currentUser]){ users[currentUser].profile={ avatar:document.getElementById("avatarDisplay").innerHTML, nickname:document.getElementById("nicknameInput").value, bio:document.getElementById("bioInput").value, wallpaper:document.getElementById("wallpaperSelect").value }; localStorage.setItem("busloot_users",JSON.stringify(users)); showToast("Lưu hồ sơ thành công!"); } };
+    document.querySelectorAll(".avatar-btn").forEach(btn=>btn.addEventListener("click",()=>{ document.getElementById("avatarDisplay").innerHTML=btn.dataset.avatar; }));
+    document.getElementById("uploadAvatarBtn").onclick=()=>document.getElementById("avatarUpload").click();
+    document.getElementById("avatarUpload").onchange=e=>{ let f=e.target.files[0]; if(f){ let r=new FileReader(); r.onload=ev=>{ const img=document.createElement("img"); img.src=ev.target.result; img.style.width="100%"; img.style.height="100%"; img.style.objectFit="cover"; img.style.borderRadius="40px"; document.getElementById("avatarDisplay").innerHTML=""; document.getElementById("avatarDisplay").appendChild(img); }; r.readAsDataURL(f); } };
+    document.getElementById("wallpaperSelect").addEventListener("change",e=>applyWallpaper(e.target.value));
+    document.getElementById("raritySortSelect").addEventListener("change",()=>updateInventoryDisplay());
+    document.getElementById("verifyRouteBtn").onclick=verifyRoute;
+    document.getElementById("gpsLocateBtn").onclick=gpsLocate;
+    document.getElementById("spinWheelBtn").onclick=spinWheel;
+    document.getElementById("fortuneCookieBtn").onclick=fortuneCookie;
+    document.getElementById("authLoginTab").onclick=()=>{ document.getElementById("authLoginTab").style.background="#7fbf62"; document.getElementById("authSignupTab").style.background="#eaf3e5"; document.getElementById("loginForm").classList.remove("hidden"); document.getElementById("signupForm").classList.add("hidden"); };
+    document.getElementById("authSignupTab").onclick=()=>{ document.getElementById("authSignupTab").style.background="#7fbf62"; document.getElementById("authLoginTab").style.background="#eaf3e5"; document.getElementById("signupForm").classList.remove("hidden"); document.getElementById("loginForm").classList.add("hidden"); };
+    drawWheel(0); updateUI(); updateDateTime();
+</script>
+</body>
+</html>
